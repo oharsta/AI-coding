@@ -94,3 +94,66 @@ GIT -->|diff| OC
 E -->|final changes and summary| OC
 OC -->|show diff and explanation| U
 ```
+Choose
+
+```mermaid
+sequenceDiagram
+
+    participant Dev as Developer
+    participant Client as OpenCode Client (ACP)
+    participant Agent as Agent Runtime
+    participant LLM as LLM (Cloud)
+    participant Tools as MCP Tools
+    participant Code as Codebase
+
+    Dev->>Client: "Add PDF export feature"
+    Client->>Agent: Send task + selected context
+
+%% Planning phase
+    Agent->>LLM: Request plan for feature
+    LLM-->>Agent: Plan steps (backend, PDF lib, endpoint, UI)
+
+%% Execution loop - step 1
+    Agent->>LLM: What is first step?
+    LLM-->>Agent: Locate report logic
+    Agent->>Tools: search_code("report")
+    Tools->>Code: Search files
+    Code-->>Tools: Matching files
+    Tools-->>Agent: Results
+
+%% Execution loop - step 2
+    Agent->>LLM: Next step?
+    LLM-->>Agent: Add PDF service
+    Agent->>Tools: read_file ReportService.java
+    Tools->>Code: Read file
+    Code-->>Tools: File content
+    Tools-->>Agent: File content
+
+    Agent->>Tools: write_file PDFService.java
+    Tools->>Code: Write new file
+
+%% Execution loop - step 3
+    Agent->>LLM: Next step?
+    LLM-->>Agent: Create export endpoint
+    Agent->>Tools: write_file ReportController.java
+    Tools->>Code: Update controller
+
+%% Execution loop - step 4
+    Agent->>LLM: Next step?
+    LLM-->>Agent: Update React UI
+    Agent->>Tools: write_file ReportPage.jsx
+    Tools->>Code: Update UI
+
+%% Validation
+    Agent->>Tools: run_tests
+    Tools->>Code: Execute tests
+    Code-->>Tools: Test results
+    Tools-->>Agent: Results
+
+%% Final result
+    Agent->>Tools: generate_diff
+    Tools-->>Client: Diff output
+    Agent-->>Client: Summary of changes
+    Client-->>Dev: Show diff + explanation
+```
+
